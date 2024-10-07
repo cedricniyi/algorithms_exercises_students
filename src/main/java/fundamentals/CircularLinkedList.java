@@ -3,6 +3,7 @@ package fundamentals;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 /**
  * Author Pierre Schaus
@@ -35,20 +36,33 @@ public class CircularLinkedList<Item> implements Iterable<Item> {
     private class Node {
         private Item item;
         private Node next;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Node node = (Node) o;
+            return Objects.equals(item, node.item) && Objects.equals(next, node.next);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(item, next);
+        }
     }
 
     public CircularLinkedList() {
-        // TODO initialize instance variables
+        this.last = new Node();
+        this.last.item = null;
+        this.last.next = this.last;
     }
 
     public boolean isEmpty() {
-        // TODO
-         return false;
+         return last.equals(last.next);
     }
 
     public int size() {
-        // TODO
-         return -1;
+         return n;
     }
 
     private long nOp() {
@@ -62,8 +76,21 @@ public class CircularLinkedList<Item> implements Iterable<Item> {
      * @param item the item to append
      */
     public void enqueue(Item item) {
-        // TODO
+        Node newNode = new Node();
+        newNode.item = item;
 
+        if (isEmpty()){
+            last.next = newNode;
+            newNode.next = last;
+            last = newNode;
+        }else{
+            Node dummyNode = last.next;
+            last.next = newNode;
+            newNode.next = dummyNode;
+            last = newNode;
+        }
+        n++;
+        nOp++;
     }
 
     /**
@@ -72,7 +99,28 @@ public class CircularLinkedList<Item> implements Iterable<Item> {
      * Returns the element that was removed from the list.
      */
     public Item remove(int index) {
-         return null;
+        if (index < 0 || index > size() - 1) throw new IndexOutOfBoundsException();
+        if (isEmpty()) return null;
+        Node dummyNode = last.next;
+
+        Node baladeur = dummyNode.next;
+        Node precedent = dummyNode;
+
+        int nbrIteration = index ;
+
+        while (nbrIteration > 0){
+            precedent = baladeur;
+            baladeur = baladeur.next;
+            nbrIteration--;
+        }
+
+        precedent.next = baladeur.next;
+        if((index+1)==n){
+            last = precedent;
+        }
+        n--;
+        nOp++;
+        return baladeur.item;
     }
 
 
@@ -96,18 +144,86 @@ public class CircularLinkedList<Item> implements Iterable<Item> {
     private class ListIterator implements Iterator<Item> {
 
         // TODO You probably need a constructor here and some instance variables
+        private long savedN0p;
+        private Node dummyNode;
+        private Node baladeur;
 
+        public ListIterator() {
+            this.savedN0p = nOp();
+            this.dummyNode = last.next;
+            this.baladeur = dummyNode.next;
+        }
 
         @Override
         public boolean hasNext() {
-             return false;
+            return !baladeur.equals(dummyNode);
         }
 
         @Override
         public Item next() {
-             return null;
+            if (savedN0p!=nOp()) throw new ConcurrentModificationException();
+            Node nextNode = baladeur;
+            baladeur = baladeur.next;
+            return nextNode.item;
         }
-
     }
 
+    public static void main(String[] args) {
+        System.out.println("HelloWorld");
+
+        CircularLinkedList<Integer> list = new CircularLinkedList<>();
+        System.out.println("Is list empty? : " + list.isEmpty());
+
+        for(Integer nbr: list){
+            System.out.println("-> " + nbr);
+        }
+
+        System.out.println("Is it still empty? : " + list.isEmpty());
+
+        list.enqueue(1);
+
+        for(Integer nbr: list){
+            System.out.println("-> " + nbr);
+        }
+
+        System.out.println("Is it still empty? : " + list.isEmpty());
+
+        list.enqueue(2);
+
+        for(Integer nbr: list){
+            System.out.println("-> " + nbr);
+        }
+
+
+        list.remove(0);
+
+        System.out.println("Is it still empty? : " + list.isEmpty());
+
+        for(Integer nbr: list){
+            System.out.println("-> " + nbr);
+        }
+
+        list.remove(0);
+
+        System.out.println("Is it still empty? : " + list.isEmpty());
+
+        for(Integer nbr: list){
+            System.out.println("-> " + nbr);
+        }
+
+//        System.out.println("Is list empty? : " + list.isEmpty());
+//
+//        for(Integer nbr: list){
+//            System.out.println("-> " + nbr);
+//        }
+//
+//        System.out.println("------------");
+//
+//        list.enqueue(2);
+//        System.out.println("Is list empty? : " + list.isEmpty());
+//
+//        for(Integer nbr: list){
+//            System.out.println("-> " + nbr);
+//        }
+    }
 }
